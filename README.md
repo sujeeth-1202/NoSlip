@@ -1,50 +1,66 @@
-# Welcome to your Expo app 👋
+# NoSlip
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A two-person accountability app for cutting sugar — built to make quitting something you don't have to do alone.
 
-## Get started
+## What It Is
 
-1. Install dependencies
+NoSlip pairs two people together to hold each other accountable on a sugar-cut / no-junk-food streak. Each person grows a tree that visually reflects their streak, can nudge or support their partner, and can confess a slip in real time rather than waiting for the day to reset.
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Daily check-in & streak tracking** — mark each clean day, track your current and best-ever streak
+- **Living streak tree** — grows visibly the longer your streak runs, with continuous growth well past 100 days
+- **Two-way nudges** — poke your partner if they haven't checked in yet (1/day cooldown)
+- **Craving SOS** — a calm breathing-exercise flow for cravings, with the option to notify your partner for support
+- **Slip confessions** — report a slip the moment it happens instead of waiting for the day to end; your partner decides in real time whether the streak continues or ends
+- **Forfeit stakes** — set what you owe if your streak breaks, shown to your partner if it does
+- **AI roast/hype messages** — a short AI-generated line celebrating a good day or ribbing a broken one (Gemini)
+- **Shared trophy wall** — side-by-side stats and streak-length badges for both of you
 
-   ```bash
-   npx expo start
-   ```
+## Tech Stack
 
-In the output, you'll find options to open the app in a
+- [Expo](https://expo.dev) (SDK ~57) / React Native
+- Firebase Auth (email/password) + Firestore
+- Google Gemini API (free tier) for AI-generated messages
+- Expo push notifications
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Getting Started
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Prerequisites
 
-## Get a fresh project
+- Node.js and npm
+- A free [Expo](https://expo.dev) account
+- A Firebase project with Auth (email/password) and Firestore enabled
+- A free Gemini API key from [Google AI Studio](https://aistudio.google.com)
 
-When you're ready, run:
+### Setup
 
 ```bash
-npm run reset-project
+git clone https://github.com/sujeeth-1202/NoSlip.git
+cd NoSlip
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Copy `.env.example` to `.env` and fill in your own Firebase config and Gemini API key.
 
-## Learn more
+Link the project to EAS (needed for push notifications):
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install -g eas-cli
+eas login
+eas init
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Run the app:
 
-## Join the community
+```bash
+npx expo start
+```
 
-Join our community of developers creating universal apps.
+## Environment Variables
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+See `.env.example` for the full list. Never commit your actual `.env` file — make sure it's listed in `.gitignore` before pushing.
+
+## License
+
+Personal project — add a license here if you want one to apply.

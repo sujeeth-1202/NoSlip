@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'expo-router';
 import {
   ActivityIndicator,
@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { QuietTheme, Typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen() {
@@ -33,7 +34,6 @@ export default function LoginScreen() {
     setSubmitting(true);
     try {
       await login(email.trim(), password);
-      // Navigation is handled automatically by the auth guard in (tabs)/_layout.tsx
     } catch (e: any) {
       console.error('Login error:', e);
       const msg =
@@ -55,29 +55,34 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.card}>
-        <Text style={styles.logo}>🚫🍩</Text>
         <Text style={styles.title}>NoSlip</Text>
-        <Text style={styles.subtitle}>Stay accountable together.</Text>
+        <Text style={styles.subtitle}>Quiet accountability, together.</Text>
 
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#9BA1A6"
+          placeholderTextColor={QuietTheme.muted}
           autoCapitalize="none"
           keyboardType="email-address"
           textContentType="emailAddress"
           value={email}
-          onChangeText={(t) => { setEmail(t); setError(''); }}
+          onChangeText={(t) => {
+            setEmail(t);
+            setError('');
+          }}
           editable={!submitting}
         />
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor="#9BA1A6"
+          placeholderTextColor={QuietTheme.muted}
           secureTextEntry
           textContentType="password"
           value={password}
-          onChangeText={(t) => { setPassword(t); setError(''); }}
+          onChangeText={(t) => {
+            setPassword(t);
+            setError('');
+          }}
           editable={!submitting}
           onSubmitEditing={handleLogin}
           returnKeyType="go"
@@ -94,7 +99,7 @@ export default function LoginScreen() {
           disabled={submitting}
         >
           {submitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={QuietTheme.surface} />
           ) : (
             <Text style={styles.buttonText}>Sign In</Text>
           )}
@@ -107,7 +112,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F2F5F8',
+    backgroundColor: QuietTheme.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -115,64 +120,74 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    backgroundColor: QuietTheme.surface,
+    borderRadius: 24,
+    paddingVertical: 36,
+    paddingHorizontal: 28,
+    borderWidth: 1,
+    borderColor: QuietTheme.border,
+    shadowColor: QuietTheme.ink,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 3,
     alignItems: 'center',
   },
-  logo: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#11181C',
+    fontFamily: Typography.display,
+    fontSize: 32,
+    color: QuietTheme.ink,
+    letterSpacing: -0.6,
     marginBottom: 4,
   },
   subtitle: {
+    fontFamily: Typography.sansRegular,
     fontSize: 14,
-    color: '#687076',
+    color: QuietTheme.inkLight,
     marginBottom: 28,
   },
   input: {
     width: '100%',
-    height: 50,
+    height: 52,
     borderWidth: 1.5,
-    borderColor: '#E0E5EA',
-    borderRadius: 12,
+    borderColor: QuietTheme.border,
+    borderRadius: 14,
     paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#11181C',
-    backgroundColor: '#FAFBFC',
-    marginBottom: 12,
+    fontFamily: Typography.sansMedium,
+    fontSize: 15,
+    color: QuietTheme.ink,
+    backgroundColor: QuietTheme.background,
+    marginBottom: 14,
   },
   error: {
-    color: '#D93025',
+    fontFamily: Typography.sansRegular,
+    color: QuietTheme.danger,
     fontSize: 13,
     marginBottom: 12,
     textAlign: 'center',
   },
   button: {
     width: '100%',
-    height: 50,
-    backgroundColor: '#0a7ea4',
-    borderRadius: 12,
+    height: 52,
+    backgroundColor: QuietTheme.accentGrowth,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
+    shadowColor: QuietTheme.accentGrowth,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
   buttonPressed: {
-    opacity: 0.75,
+    backgroundColor: QuietTheme.accentGrowthHover,
+    opacity: 0.88,
   },
   buttonText: {
-    color: '#fff',
+    fontFamily: Typography.sansBold,
+    color: QuietTheme.surface,
     fontSize: 16,
-    fontWeight: '600',
+    letterSpacing: 0.2,
   },
 });
