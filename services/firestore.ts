@@ -119,78 +119,107 @@ export async function forfeitUserStreak(
 }
 
 /**
- * If the user's lastCheckInDate is more than 1 calendar day before today,
- * reset their currentStreak to 0 in Firestore using forfeitUserStreak.
- *
- * Call this once on app load / sign-in.
+ * Passive missed-check-in detection:
+ * Unifies passive missed-check-in detection with the buddy-decision system.
+ * When passive detection fires (streak was >0, now calculates to 0):
+ * - Do NOT immediately reset the streak or call forfeit.
+ * - Write to pendingConfession with food left null (distinguishes missed check-in from explicit confession).
+ * - Leave currentStreak untouched until the buddy decides.
+ * - Dispatches push to buddy: "{name} missed their check-in. Decide what happens to their streak."
  */
-export async function checkAndResetStreak(
+export async function checkMissedCheckin(
   userId: string,
   userData: UserData,
-): Promise<ForfeitResult> {
+  buddyPushToken?: string | null,
+): Promise<void> {
   const today = getTodayLocal();
   const last = userData.lastCheckInDate;
 
   if (!last || daysBetween(last, today) <= 1) {
-    return { isForfeit: false, brokenStake: null };
+    return;
+  }
+
+  if (userData.currentStreak <= 0 || userData.pendingConfession) {
+    return;
   }
 
   const userRef = doc(db, 'users', userId);
   const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) return { isForfeit: false, brokenStake: null };
+  if (!userSnap.exists()) return;
 
   const currentData = userSnap.data() as UserData;
   const serverLast: string | null = currentData.lastCheckInDate ?? null;
 
-  if (serverLast && daysBetween(serverLast, today) > 1) {
-    if (currentData.currentStreak > 0) {
-      // Active streak broke -> call shared forfeit function
-      let buddyPushToken: string | null = null;
-      if (userData.buddyId && currentData.currentStake) {
-        try {
-          const buddy = await fetchUserDoc(userData.buddyId);
-          if (buddy) {
-            buddyPushToken = buddy.pushToken ?? null;
-          }
-        } catch (err) {
-          console.warn('Failed to fetch buddy push token for forfeit:', err);
-        }
-      }
-
-      const { previousStake } = await forfeitUserStreak(userId, {
-        recipientUserId: userData.buddyId,
-        customPushToken: buddyPushToken,
-        customPushTitle: 'NoSlip',
-        customPushBody: `${userData.displayName}'s streak broke. Owed: ${currentData.currentStake}.`,
-        targetPage: 1,
-      });
-
-      return { isForfeit: true, brokenStake: previousStake };
-    } else {
-      // Streak was already 0
-      await updateDoc(userRef, { currentStreak: 0 });
-      return { isForfeit: false, brokenStake: null };
-    }
+  if (
+    serverLast &&
+    daysBetween(serverLast, today) > 1 &&
+    currentData.currentStreak > 0 &&
+    !currentData.pendingConfession
+  ) {
+    await submitConfession(
+      userId,
+      null, // food: null distinguishes missed check-in
+      currentData.displayName,
+      currentData.buddyId,
+      buddyPushToken,
+    );
   }
-
-  return { isForfeit: false, brokenStake: null };
 }
 
+/** Legacy alias for backwards compatibility */
+export const checkAndResetStreak = checkMissedCheckin;
+
 /**
- * Submits a slip confession for a user.
+ * Submits a slip confession or records a missed check-in for a user.
  * Writes { food, confessedAt: serverTimestamp() } to pendingConfession.
+ * Notifies the buddy with food-specific or missed-check-in copy.
  */
 export async function submitConfession(
   userId: string,
-  food: string,
+  food: string | null,
+  userName?: string,
+  buddyId?: string | null,
+  buddyPushToken?: string | null,
 ): Promise<void> {
   const userRef = doc(db, 'users', userId);
+  const cleanFood = food && food.trim().length > 0 ? food.trim() : null;
+
   await updateDoc(userRef, {
     pendingConfession: {
-      food: food.trim(),
+      food: cleanFood,
       confessedAt: serverTimestamp(),
     },
   });
+
+  try {
+    let targetToken = buddyPushToken;
+    let allowPush = true;
+
+    if (buddyId) {
+      const buddy = await fetchUserDoc(buddyId);
+      if (buddy) {
+        allowPush = buddy.notificationPrefs?.streakUpdates ?? true;
+        if (buddy.pushToken) {
+          targetToken = buddy.pushToken;
+        }
+      }
+    }
+
+    if (allowPush && targetToken) {
+      const body = cleanFood
+        ? `${userName || 'Your buddy'} says they had "${cleanFood}". Decide what happens to their streak.`
+        : `${userName || 'Your buddy'} missed their check-in. Decide what happens to their streak.`;
+
+      await sendExpoPushNotification(
+        targetToken,
+        'NoSlip',
+        body,
+        { targetPage: 1 },
+      );
+    }
+  } catch (err) {
+    console.warn('Failed to send confession push notification:', err);
+  }
 }
 
 /**

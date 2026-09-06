@@ -57,10 +57,6 @@ Run the app:
 npx expo start
 ```
 
-## Environment Variables
+### About The Creator
 
-See `.env.example` for the full list. Never commit your actual `.env` file — make sure it's listed in `.gitignore` before pushing.
-
-## License
-
-Personal project — add a license here if you want one to apply.
+Built by Sujeeth , to make quitting sugar and junk a little less lonely ❤️ .

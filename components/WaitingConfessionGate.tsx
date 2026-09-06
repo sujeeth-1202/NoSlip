@@ -10,7 +10,7 @@ import { QuietTheme, Typography } from '@/constants/theme';
 
 interface WaitingConfessionGateProps {
   buddyName: string;
-  food: string;
+  food?: string | null;
 }
 
 export function WaitingConfessionGate({
@@ -44,10 +44,17 @@ export function WaitingConfessionGate({
           Waiting for {buddyName} to decide
         </Text>
 
-        <View style={styles.foodHighlightBox}>
-          <Text style={styles.confessedLabel}>You confessed to having</Text>
-          <Text style={styles.foodText}>"{food}"</Text>
-        </View>
+        {food ? (
+          <View style={styles.foodHighlightBox}>
+            <Text style={styles.confessedLabel}>You confessed to having</Text>
+            <Text style={styles.foodText}>"{food}"</Text>
+          </View>
+        ) : (
+          <View style={styles.foodHighlightBox}>
+            <Text style={styles.confessedLabel}>Status</Text>
+            <Text style={styles.foodText}>Missed check-in</Text>
+          </View>
+        )}
 
         <Text style={styles.explanationText}>
           Your check-ins and tree are paused while your buddy considers whether your streak continues.

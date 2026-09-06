@@ -34,6 +34,7 @@ import { QuietTheme, Typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { generateHypeMessage } from '@/services/ai';
 import {
+  checkMissedCheckin,
   getTodayLocal,
   isNudgedToday,
   recordCravingSurvived,
@@ -78,13 +79,26 @@ export default function HomeScreen() {
   const buddyIsNudgedToday =
     nudgeOptimistic || (buddyData ? isNudgedToday(buddyData.lastNudgedAt) : false);
 
+  // Check for missed check-ins on mount
+  useEffect(() => {
+    if (user && userData) {
+      checkMissedCheckin(user.uid, userData, buddyData?.pushToken).catch((err) => {
+        console.warn('Missed check-in check on mount failed:', err);
+      });
+    }
+  }, [user?.uid, userData?.lastCheckInDate]);
+
   // AppState listener for foreground transitions
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (_nextAppState) => {
-      // Re-evaluation of gates and snapshot sync happens reactively
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && user && userData) {
+        checkMissedCheckin(user.uid, userData, buddyData?.pushToken).catch((err) => {
+          console.warn('Missed check-in check on foreground failed:', err);
+        });
+      }
     });
     return () => subscription.remove();
-  }, []);
+  }, [user, userData, buddyData?.pushToken]);
 
   // Listen for notification taps to deep-link to target page
   useEffect(() => {
@@ -185,9 +199,15 @@ export default function HomeScreen() {
   }
 
   async function handleConfessionSubmit(food: string) {
-    if (!user) return;
+    if (!user || !userData) return;
     try {
-      await submitConfession(user.uid, food);
+      await submitConfession(
+        user.uid,
+        food,
+        userData.displayName,
+        userData.buddyId,
+        buddyData?.pushToken,
+      );
     } catch (e: any) {
       console.warn('Failed to submit slip confession:', e);
     }
@@ -367,7 +387,9 @@ export default function HomeScreen() {
               {userData.pendingConfession ? (
                 <View style={styles.waitingPill}>
                   <Text style={styles.waitingPillText}>
-                    Waiting for {buddyFirstName} to decide
+                    {userData.pendingConfession.food
+                      ? `Waiting for ${buddyFirstName} to decide`
+                      : `You missed a check-in — waiting for ${buddyFirstName} to decide.`}
                   </Text>
                 </View>
               ) : alreadyCheckedIn ? (

@@ -11,7 +11,7 @@ import { QuietTheme, Typography } from '@/constants/theme';
 
 interface BuddyDecisionGateProps {
   buddyName: string;
-  food: string;
+  food?: string | null;
   onAllow: () => Promise<void>;
   onEndStreak: () => Promise<void>;
 }
@@ -63,18 +63,26 @@ export function BuddyDecisionGate({
       {/* Center Decision Card */}
       <View style={styles.cardContainer}>
         <View style={styles.tagWrap}>
-          <Text style={styles.tagText}>Slip Confession</Text>
+          <Text style={styles.tagText}>{food ? 'Slip Confession' : 'Missed Check-in'}</Text>
         </View>
 
-        <Text style={styles.confessionHeadline}>
-          {buddyName} says they had
-        </Text>
+        {food ? (
+          <>
+            <Text style={styles.confessionHeadline}>
+              {buddyName} says they had
+            </Text>
 
-        <View style={styles.foodHighlightBox}>
-          <Text style={styles.foodText}>"{food}"</Text>
-        </View>
+            <View style={styles.foodHighlightBox}>
+              <Text style={styles.foodText}>"{food}"</Text>
+            </View>
+          </>
+        ) : (
+          <Text style={styles.confessionHeadline}>
+            {buddyName} missed their check-in.
+          </Text>
+        )}
 
-        <Text style={styles.questionText}>
+        <Text style={[styles.questionText, !food && { marginTop: 8 }]}>
           Let their streak continue?
         </Text>
       </View>

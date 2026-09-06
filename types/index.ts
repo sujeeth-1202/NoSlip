@@ -1,5 +1,5 @@
 export interface ConfessionData {
-  food: string;
+  food: string | null;
   confessedAt: any;
 }
 

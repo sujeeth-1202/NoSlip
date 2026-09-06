@@ -85,27 +85,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let firstUserSnap = true;
       unsubUserRef.current = onSnapshot(
         doc(db, 'users', firebaseUser.uid),
-        async (snap) => {
+        (snap) => {
           if (!snap.exists()) {
             setLoading(false);
             return;
           }
           const data = snap.data() as UserData;
 
-          // On the very first snapshot after sign-in: run the streak reset check and push token sync
+          // Detect if streak broke (was > 0, now is 0)
+          if (
+            prevUserDataRef.current &&
+            prevUserDataRef.current.currentStreak > 0 &&
+            data.currentStreak === 0
+          ) {
+            setForfeitEvent({
+              isForfeit: true,
+              brokenStake: prevUserDataRef.current.currentStake ?? null,
+            });
+          }
+
+          prevUserDataRef.current = data;
+          setUserData(data);
+          setLoading(false);
+
+          // On first snapshot: run passive check, push token sync, and buddy subscription
           if (firstUserSnap) {
             firstUserSnap = false;
 
             if (!streakCheckHandledRef.current) {
               streakCheckHandledRef.current = true;
-              try {
-                const result = await checkAndResetStreak(firebaseUser.uid, data);
-                if (result.isForfeit) {
-                  setForfeitEvent(result);
-                }
-              } catch (e) {
-                console.warn('Streak reset check failed:', e);
-              }
+              checkAndResetStreak(firebaseUser.uid, data).catch((e) => {
+                console.warn('Missed check-in check failed:', e);
+              });
             }
 
             // Capture and sync push token on login / mount
@@ -122,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
             }
 
-            // After potential reset, subscribe to the buddy doc.
+            // Subscribe to the buddy doc
             if (data.buddyId) {
               unsubBuddyRef.current = onSnapshot(
                 doc(db, 'users', data.buddyId),
@@ -134,24 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 (err) => console.warn('Buddy snapshot error:', err),
               );
             }
-
-            setLoading(false);
-          } else {
-            // On subsequent snapshots, check if streak broke remotely (e.g. buddy ended streak)
-            if (
-              prevUserDataRef.current &&
-              prevUserDataRef.current.currentStreak > 0 &&
-              data.currentStreak === 0
-            ) {
-              setForfeitEvent({
-                isForfeit: true,
-                brokenStake: prevUserDataRef.current.currentStake ?? null,
-              });
-            }
           }
-
-          prevUserDataRef.current = data;
-          setUserData(data);
         },
         (err) => {
           console.warn('User snapshot error:', err);
