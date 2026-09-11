@@ -11,15 +11,21 @@
     "ios": {
       "supportsTablet": true
     },
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E7DFCE"
+    },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#E7DFCE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ufo_1202.noslip",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -33,9 +39,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#E7DFCE",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#E7DFCE"
           }
         }
       ]
@@ -50,6 +56,12 @@
         "projectId": "098acab4-1042-4666-ba8c-1d258c4be29c"
       }
     },
-    "owner": "ufo_1202"
+    "owner": "ufo_1202",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/098acab4-1042-4666-ba8c-1d258c4be29c"
+    }
   }
 }

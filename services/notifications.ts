@@ -16,59 +16,43 @@ Notifications.setNotificationHandler({
 
 /**
  * Requests notification permissions and returns the Expo Push Token.
- * Returns null gracefully on emulators or if permission is denied.
+ * Explicitly passes the EAS project ID and surfaces errors directly.
  */
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
   if (Platform.OS === 'web') {
     return null;
   }
 
-  try {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#3E5C43',
-      });
-    }
-
-    if (!Device.isDevice) {
-      console.log('Push notifications require a physical device');
-      return null;
-    }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('Notification permission not granted');
-      return null;
-    }
-
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId ??
-      Constants.easConfig?.projectId;
-
-    if (!projectId) {
-      console.warn('EAS Project ID not found in app config');
-      return null;
-    }
-
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId,
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#3E5C43',
     });
-
-    return tokenData.data;
-  } catch (error) {
-    console.warn('Failed to get push token:', error);
-    return null;
   }
+
+  if (!Device.isDevice) {
+    throw new Error('Push notifications require a physical device');
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    throw new Error(`Notification permission not granted (status: ${finalStatus})`);
+  }
+
+  const tokenData = await Notifications.getExpoPushTokenAsync({
+    projectId: '098acab4-1042-4666-ba8c-1d258c4be29c',
+  });
+
+  return tokenData.data;
 }
 
 /**

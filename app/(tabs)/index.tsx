@@ -361,26 +361,14 @@ export default function HomeScreen() {
               </Animated.View>
             ) : null}
 
-            {/* Stake Display / Setup Line near check-in button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.stakePressArea,
-                pressed && styles.pressedState,
-              ]}
-              onPress={() => setIsStakeEditorOpen(true)}
-              hitSlop={8}
-            >
-              {userData.currentStake ? (
-                <View style={styles.stakeContentRow}>
-                  <Text style={styles.stakeLabelText} numberOfLines={1}>
-                    Stake: {userData.currentStake}
-                  </Text>
-                  <Text style={styles.stakeEditIcon}>✎</Text>
-                </View>
-              ) : (
-                <Text style={styles.setStakePromptText}>+ Set a stake</Text>
-              )}
-            </Pressable>
+            {/* Stake Display: consequence set by buddy for user (read-only) */}
+            <View style={styles.stakePressArea}>
+              <Text style={styles.stakeLabelText} numberOfLines={1}>
+                {buddyData?.currentStake
+                  ? `Stake: ${buddyData.currentStake}`
+                  : 'No stake set'}
+              </Text>
+            </View>
 
             {/* Check-in CTA Button or Waiting indicator pill */}
             <View style={styles.ctaContainer}>
@@ -481,14 +469,27 @@ export default function HomeScreen() {
                   Best: {buddyData.longestStreak} {buddyData.longestStreak === 1 ? 'day' : 'days'}
                 </Text>
 
-                {/* Buddy's Stake (read-only) */}
-                <View style={styles.buddyStakeRow}>
-                  <Text style={styles.stakeLabelText} numberOfLines={1}>
-                    {buddyData.currentStake
-                      ? `Stake: ${buddyData.currentStake}`
-                      : 'No stake set'}
-                  </Text>
-                </View>
+                {/* Stake Display: consequence set by user for buddy (interactive) */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.stakePressArea,
+                    styles.buddyStakeRow,
+                    pressed && styles.pressedState,
+                  ]}
+                  onPress={() => setIsStakeEditorOpen(true)}
+                  hitSlop={8}
+                >
+                  {userData.currentStake ? (
+                    <View style={styles.stakeContentRow}>
+                      <Text style={styles.stakeLabelText} numberOfLines={1}>
+                        Stake: {userData.currentStake}
+                      </Text>
+                      <Text style={styles.stakeEditIcon}>✎</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.setStakePromptText}>+ Set a stake</Text>
+                  )}
+                </Pressable>
 
                 {/* Nudge Control Area */}
                 <View style={styles.ctaContainer}>

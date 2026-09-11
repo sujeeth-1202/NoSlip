@@ -381,10 +381,18 @@ export async function updateUserPushToken(
   userId: string,
   pushToken: string,
 ): Promise<void> {
-  const userRef = doc(db, 'users', userId);
-  await updateDoc(userRef, {
-    pushToken,
-  });
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      pushToken,
+    });
+  } catch (error: any) {
+    console.error(
+      `Failed to write push token to Firestore (users/${userId}):`,
+      error?.message || error,
+    );
+    throw error;
+  }
 }
 
 /**
